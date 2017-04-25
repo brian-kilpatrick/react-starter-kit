@@ -16,16 +16,15 @@ import expressGraphQL from 'express-graphql';
 import jwt from 'jsonwebtoken';
 import React from 'react';
 import ReactDOM from 'react-dom/server';
-import UniversalRouter from 'universal-router';
 import PrettyError from 'pretty-error';
 import App from './components/App';
 import Html from './components/Html';
 import { ErrorPageWithoutStyle } from './routes/error/ErrorPage';
 import errorPageStyle from './routes/error/ErrorPage.css';
 import passport from './core/passport';
+import router from './core/router';
 import models from './data/models';
 import schema from './data/schema';
-import routes from './routes';
 import assets from './assets.json'; // eslint-disable-line import/no-unresolved
 import { port, auth } from './config';
 
@@ -100,7 +99,7 @@ app.get('*', async (req, res, next) => {
       },
     };
 
-    const route = await UniversalRouter.resolve(routes, {
+    const route = await router.resolve({
       path: req.path,
       query: req.query,
     });
@@ -139,7 +138,7 @@ pe.skipNodeFiles();
 pe.skipPackage('express');
 
 app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
-  console.log(pe.render(err)); // eslint-disable-line no-console
+  console.error(pe.render(err));
   const html = ReactDOM.renderToStaticMarkup(
     <Html
       title="Internal Server Error"
@@ -156,10 +155,8 @@ app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
 //
 // Launch the server
 // -----------------------------------------------------------------------------
-/* eslint-disable no-console */
 models.sync().catch(err => console.error(err.stack)).then(() => {
   app.listen(port, () => {
-    console.log(`The server is running at http://localhost:${port}/`);
+    console.info(`The server is running at http://localhost:${port}/`);
   });
 });
-/* eslint-enable no-console */
