@@ -1,4 +1,5 @@
-import { db } from '../../../src/config'
+import config from '../../../src/config'
+let { db } = config;
 
 export default {
   "development": {
