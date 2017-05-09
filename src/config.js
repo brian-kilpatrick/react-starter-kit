@@ -12,7 +12,13 @@
 export const port = process.env.PORT || 3000;
 export const host = process.env.WEBSITE_HOSTNAME || `localhost:${port}`;
 
-export const databaseUrl = process.env.DATABASE_URL || 'sqlite:database.sqlite';
+export const db = {
+  name: process.env.DB_NAME,
+  user: process.env.PGUSER,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT || 5432,
+  host: process.env.DB_HOST || "127.0.0.1",
+};
 
 export const analytics = {
 

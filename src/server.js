@@ -11,8 +11,10 @@ import { ErrorPageWithoutStyle } from './routes/error/ErrorPage';
 import errorPageStyle from './routes/error/ErrorPage.css';
 import router from './core/router';
 import models from './data/models';
+import { User } from './data/models';
 import assets from './assets.json'; // eslint-disable-line import/no-unresolved
-import { port, auth } from './config';
+import { port, auth, db } from './config';
+import { logger } from './utils';
 
 const app = express();
 
@@ -43,6 +45,21 @@ if (__DEV__) {
 //
 // Register API middleware
 // -----------------------------------------------------------------------------
+app.get('/api/users',(req, res) => {
+  User.findAll().then((users) => res.send(users))
+
+});
+
+app.get('/api/users/:id', (req, res) => {
+  User.findById(req.params.id)
+    .then(user => {
+      if (user) {
+        res.send(user)
+      } else {
+        res.status(400).send("No Results")
+      }
+    })
+});
 
 
 //
@@ -120,6 +137,13 @@ app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
 // Launch the server
 // -----------------------------------------------------------------------------
 models.sync().catch(err => console.error(err.stack)).then(() => {
+  //remove this of course!
+  // User.create({
+  //   email: 'bk@bk.com',
+  //   firstName: 'Test',
+  //   lastName: 'Test'
+  // });
+
   app.listen(port, () => {
     console.info(`The server is running at http://localhost:${port}/`);
   });

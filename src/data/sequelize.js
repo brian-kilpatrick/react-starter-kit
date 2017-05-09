@@ -8,12 +8,11 @@
  */
 
 import Sequelize from 'sequelize';
-import { databaseUrl } from '../config';
+// import { databaseUrl } from '../config';
+import config from './config/config'
+import { logger } from '../../src/utils'
+let env = process.env.NODE_ENV || 'development';
 
-const sequelize = new Sequelize(databaseUrl, {
-  define: {
-    freezeTableName: true,
-  },
-});
+const sequelize = new Sequelize(config[env].database, config[env].username, config[env].password, config[env]);
 
 export default sequelize;
