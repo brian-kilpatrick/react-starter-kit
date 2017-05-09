@@ -9,12 +9,12 @@ import App from './components/App';
 import Html from './components/Html';
 import { ErrorPageWithoutStyle } from './routes/error/ErrorPage';
 import errorPageStyle from './routes/error/ErrorPage.css';
-import router from './core/router';
+import router from './router';
 import models from './data/models';
 import createFetch from './createFetch';
 import { User } from './data/models';
 import assets from './assets.json'; // eslint-disable-line import/no-unresolved
-import { port, auth, db } from './config';
+import config from './config';
 import { logger } from './utils';
 
 const app = express();
@@ -154,7 +154,7 @@ models.sync().catch(err => console.error(err.stack)).then(() => {
   //   lastName: 'Test'
   // });
 
-  app.listen(port, () => {
-    console.info(`The server is running at http://localhost:${port}/`);
+  app.listen(config.port, () => {
+    console.info(`The server is running at http://localhost:${config.port}/`);
   });
 });
