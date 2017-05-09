@@ -11,6 +11,7 @@ import { ErrorPageWithoutStyle } from './routes/error/ErrorPage';
 import errorPageStyle from './routes/error/ErrorPage.css';
 import router from './core/router';
 import models from './data/models';
+import createFetch from './createFetch';
 import { User } from './data/models';
 import assets from './assets.json'; // eslint-disable-line import/no-unresolved
 import { port, auth, db } from './config';
@@ -78,11 +79,17 @@ app.get('*', async (req, res, next) => {
         // eslint-disable-next-line no-underscore-dangle
         styles.forEach(style => css.add(style._getCss()));
       },
+      // Universal HTTP client
+      fetch: createFetch({
+        baseUrl: config.api.serverUrl,
+        cookie: req.headers.cookie,
+      }),
     };
 
     const route = await router.resolve({
       path: req.path,
       query: req.query,
+      fetch: context.fetch,
     });
 
     if (route.redirect) {
@@ -102,6 +109,9 @@ app.get('*', async (req, res, next) => {
     if (assets[route.chunk]) {
       data.scripts.push(assets[route.chunk].js);
     }
+    data.app = {
+      apiUrl: config.api.clientUrl,
+    };
 
     const html = ReactDOM.renderToStaticMarkup(<Html {...data} />);
     res.status(route.status || 200);
