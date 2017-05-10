@@ -16,6 +16,7 @@ if (process.env.BROWSER) {
 export default  {
 
   port: process.env.PORT || 3000,
+  host: process.env.WEBSITE_HOSTNAME || `localhost:${this.port}`,
 
   db: {
     name: process.env.DB_NAME,

@@ -15,6 +15,7 @@ import createFetch from './createFetch';
 import { User } from './data/models';
 import assets from './assets.json'; // eslint-disable-line import/no-unresolved
 import config from './config';
+import morgan from 'morgan';
 import { logger } from './utils';
 
 const app = express();
@@ -33,6 +34,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(morgan('combined'));
 
 //
 // Authentication
@@ -51,16 +53,25 @@ app.get('/api/users',(req, res) => {
 
 });
 
-app.get('/api/users/:id', (req, res) => {
-  User.findById(req.params.id)
-    .then(user => {
-      if (user) {
-        res.send(user)
-      } else {
-        res.status(400).send("No Results")
-      }
-    })
+
+// just for fun, and to verify bcrypt is working.
+app.get('/api/users/:id/:password', async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (user) {
+    const isValidPassword = await user.isValidPassword(req.params.password);
+
+    if (isValidPassword) {
+      res.send(user)
+    } else {
+      res.send("Wrong Password!")
+    }
+
+  } else {
+    res.status(400).send("No Results")
+  }
 });
+
+
 
 
 //
@@ -151,7 +162,8 @@ models.sync().catch(err => console.error(err.stack)).then(() => {
   // User.create({
   //   email: 'bk@bk.com',
   //   firstName: 'Test',
-  //   lastName: 'Test'
+  //   lastName: 'Test',
+  //   password: 'testPassword'
   // });
 
   app.listen(config.port, () => {

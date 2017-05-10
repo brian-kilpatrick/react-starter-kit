@@ -9,6 +9,8 @@
 
 import DataType from 'sequelize';
 import Model from '../sequelize';
+import bcrypt from 'bcrypt';
+import { logger } from '../../utils';
 
 const User = Model.define('User', {
   email: {
@@ -23,13 +25,26 @@ const User = Model.define('User', {
     type: DataType.STRING,
     allowNull: false,
   },
+  password: {
+    type: DataType.STRING,
+    allowNull: false,
+  },
 
 }, {
-
+  instanceMethods: {
+    isValidPassword(password) {
+      return bcrypt.compare(password, this.password).then(isValid => isValid);
+    }
+  }
   // indexes: [
   //   { fields: ['email'] },
   // ],
 
+});
+
+// hash
+User.beforeCreate((user, opts) => {
+  return bcrypt.hash(user.password, 5).then(hash => user.password = hash)
 });
 
 export default User;
