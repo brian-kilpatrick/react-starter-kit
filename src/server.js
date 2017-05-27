@@ -153,8 +153,7 @@ app.get('*', async (req, res, next) => {
       fetch: createFetch({
         baseUrl: config.api.serverUrl,
         cookie: req.headers.cookie,
-      }),
-      user: req.user || null
+      })
     };
 
     const flash = req.flash('error');
@@ -163,7 +162,8 @@ app.get('*', async (req, res, next) => {
       path: req.path,
       query: req.query,
       fetch: context.fetch,
-      flash
+      flash,
+      user: req.user || null
     });
 
     if (route.redirect) {

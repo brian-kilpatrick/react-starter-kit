@@ -6,10 +6,9 @@ export default {
   path: '/',
 
   async action({fetch, user}) {
-    console.log(user)
     const response = await fetch('/api/is-user?', {method: 'GET', credentials: 'include'});
     const { isUser } = await response.json();
-    const loginStatus = isUser ? <p>logged in as {user ? user.firstName : '...'} </p> : <p>Not Logged In</p>;
+    const loginStatus = isUser ? <p>logged in as {user.firstName} </p> : <p>Not Logged In</p>;
 
     return {
       title: 'React Starter Kit',
