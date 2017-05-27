@@ -32,8 +32,9 @@ class Html extends React.Component {
     scripts: [],
   };
 
+
   render() {
-    const { title, description, styles, scripts, app, children } = this.props;
+    const { title, description, styles, scripts, app, children, flash, user } = this.props
     return (
       <html className="no-js" lang="en">
         <head>
@@ -53,6 +54,8 @@ class Html extends React.Component {
         </head>
         <body>
           <div id="app" dangerouslySetInnerHTML={{ __html: children }} />
+          <script dangerouslySetInnerHTML={{ __html: `window._USER_ = ${JSON.stringify(user)};` }} />
+          <script dangerouslySetInnerHTML={{ __html: `window._FLASH_MESSAGE_ = '${JSON.stringify(flash)}';` }} />
           <script dangerouslySetInnerHTML={{ __html: `window.App=${serialize(app)}` }} />
           {scripts.map(script => <script key={script} src={script} />)}
           {config.analytics.googleTrackingId &&
@@ -65,6 +68,7 @@ class Html extends React.Component {
           {config.analytics.googleTrackingId &&
             <script src="https://www.google-analytics.com/analytics.js" async defer />
           }
+
         </body>
       </html>
     );

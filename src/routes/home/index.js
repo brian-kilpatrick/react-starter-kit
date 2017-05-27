@@ -1,14 +1,19 @@
 import React from 'react';
+import { logger } from '../../utils';
 
 export default {
 
   path: '/',
 
-  async action() {
+  async action({fetch, user}) {
+    console.log(user)
+    const response = await fetch('/api/is-user?', {method: 'GET', credentials: 'include'});
+    const { isUser } = await response.json();
+    const loginStatus = isUser ? <p>logged in as {user ? user.firstName : '...'} </p> : <p>Not Logged In</p>;
 
     return {
       title: 'React Starter Kit',
-      component: <h1>Hello World!</h1>,
+      component: <div><h1>Hello World!</h1>{loginStatus}</div>,
     };
   },
 

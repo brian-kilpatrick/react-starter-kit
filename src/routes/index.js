@@ -1,4 +1,8 @@
 /* eslint-disable global-require */
+import homeRoutes from './home';
+import registerRoutes from './register';
+import loginRoutes from './login';
+import notFoundRoutes from './notFound';
 
 // The top-level (parent) route
 export default {
@@ -7,10 +11,11 @@ export default {
 
   // Keep in mind, routes are evaluated in order
   children: [
-    require('./home').default,
-
+    homeRoutes,
+    registerRoutes,
+    loginRoutes,
     // Wildcard routes, e.g. { path: '*', ... } (must go last)
-    require('./notFound').default,
+    notFoundRoutes,
   ],
 
   async action({ next }) {

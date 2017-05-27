@@ -16,6 +16,11 @@ import { User } from './data/models';
 import assets from './assets.json'; // eslint-disable-line import/no-unresolved
 import config from './config';
 import morgan from 'morgan';
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import session from 'express-session';
+import flash from 'connect-flash';
+
 import { logger } from './utils';
 
 const app = express();
@@ -40,38 +45,92 @@ app.use(morgan('combined'));
 // Authentication
 // -----------------------------------------------------------------------------
 
-if (__DEV__) {
-  app.enable('trust proxy');
-}
+//need to use a session store in prod...
+app.use(session({
+  secret: config.auth.secret,
+  cookie: {
+    maxAge: config.auth.sessionMaxAge
+  }
+}));
 
+app.use(flash());
+
+passport.serializeUser((user,done) => {
+  done(null, user.id)
+});
+
+passport.deserializeUser( (id,done) => {
+  User.findById(id).then((user) => {
+    done(null, user.get())
+  })
+    .catch(() => {
+      done(null, null)
+    });
+})
+
+passport.use(new LocalStrategy({
+  usernameField: 'email'
+}, async (email, password, done) => {
+  const user = await User.findOne({where: { email }});
+  if (user) {
+    const isValidPassword = await user.isValidPassword(password);
+    if (isValidPassword) {
+      done(null, user.get())
+    } else {
+      done(null, false, { message: 'Incorrect Username or Password'});
+    }
+  } else {
+    done(null, false, { message: 'Incorrect Username'});
+  }
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.post('/login',
+  passport.authenticate('local', {
+    successFlash: 'Login Successful',
+    successRedirect: '/',
+    failureFlash: true,
+    failureRedirect: '/login'
+  })
+);
+
+
+app.get('/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
+});
+
+
+// if (__DEV__) {
+//   app.enable('trust proxy');
+// }
+
+app.enable('trust proxy');
+
+app.post('/register', (req, res) => {
+  User.create(req.body,{ fields: ['email', 'firstName', 'lastName', 'password']})
+    .then(user => res.status(200).send(user))
+    .catch(err => {
+      res.status(400).send(err.message)
+    });
+});
+
+app.get('/api/is-user', (req, res) => {
+  res.append('Cache-Control', 'no-cache');
+  res.append('Cache-Control', 'no-store');
+  res.append('Pragma', 'no-cache');
+  res.append('Expires', '0');
+  return res.send({ isUser: !!req.user });
+});
 
 //
 // Register API middleware
 // -----------------------------------------------------------------------------
 app.get('/api/users',(req, res) => {
   User.findAll().then((users) => res.send(users))
-
 });
-
-
-// just for fun, and to verify bcrypt is working.
-app.get('/api/users/:id/:password', async (req, res) => {
-  const user = await User.findById(req.params.id);
-  if (user) {
-    const isValidPassword = await user.isValidPassword(req.params.password);
-
-    if (isValidPassword) {
-      res.send(user)
-    } else {
-      res.send("Wrong Password!")
-    }
-
-  } else {
-    res.status(400).send("No Results")
-  }
-});
-
-
 
 
 //
@@ -95,12 +154,16 @@ app.get('*', async (req, res, next) => {
         baseUrl: config.api.serverUrl,
         cookie: req.headers.cookie,
       }),
+      user: req.user || null
     };
+
+    const flash = req.flash('error');
 
     const route = await router.resolve({
       path: req.path,
       query: req.query,
       fetch: context.fetch,
+      flash
     });
 
     if (route.redirect) {
@@ -109,6 +172,7 @@ app.get('*', async (req, res, next) => {
     }
 
     const data = { ...route };
+    data.flash = flash;
     data.children = ReactDOM.renderToString(<App context={context}>{route.component}</App>);
     data.styles = [
       { id: 'css', cssText: [...css].join('') },
@@ -123,6 +187,12 @@ app.get('*', async (req, res, next) => {
     data.app = {
       apiUrl: config.api.clientUrl,
     };
+
+    if (req.user) {
+      let { id, firstName, lastName, email } = req.user;
+
+      data.user = { id, firstName, lastName, email };
+    }
 
     const html = ReactDOM.renderToStaticMarkup(<Html {...data} />);
     res.status(route.status || 200);

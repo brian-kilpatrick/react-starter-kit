@@ -16,6 +16,7 @@ const ContextType = {
   insertCss: PropTypes.func.isRequired,
   // Universal HTTP client
   fetch: PropTypes.func.isRequired,
+  user: PropTypes.object
 };
 
 /**

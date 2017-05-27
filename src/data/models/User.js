@@ -15,6 +15,7 @@ import { logger } from '../../utils';
 const User = Model.define('User', {
   email: {
     type: DataType.STRING(255),
+    unique: true,
     validate: { isEmail: true },
   },
   firstName: {
@@ -44,6 +45,7 @@ const User = Model.define('User', {
 
 // hash
 User.beforeCreate((user, opts) => {
+  if (!user.password) throw new Error('Password Cannot Be Blank');
   return bcrypt.hash(user.password, 5).then(hash => user.password = hash)
 });
 

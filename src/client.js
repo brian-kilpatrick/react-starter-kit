@@ -26,6 +26,7 @@ const context = {
   fetch: createFetch({
     baseUrl: window.App.apiUrl,
   }),
+  user: window._USER_ || null
 };
 
 // Switch off the native scroll restoration behavior and handle it manually
@@ -107,6 +108,8 @@ async function onLocationChange(location, action) {
       path: location.pathname,
       query: queryString.parse(location.search),
       fetch: context.fetch,
+      flash: JSON.parse(window._FLASH_MESSAGE_),
+      user: window._USER_ || null
     });
 
     // Prevent multiple page renders during the routing process
