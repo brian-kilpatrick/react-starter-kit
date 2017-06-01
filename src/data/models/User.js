@@ -15,7 +15,7 @@ import { logger } from '../../utils';
 const User = Model.define('User', {
   email: {
     type: DataType.STRING(255),
-    unique: true,
+    unique: { msg: "That email is being used already." },
     validate: { isEmail: true },
   },
   firstName: {
